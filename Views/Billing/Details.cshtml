@@ -1,0 +1,86 @@
+@model Billing
+@{
+    ViewData["Title"] = "Invoice Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 style="font-family:var(--font-display);font-weight:700;margin:0">@Model.InvoiceNumber</h2>
+        <span class="text-muted">@Model.Patient?.FullName · @Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+    </div>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Charge Breakdown</h3></div>
+            <div class="card-body">
+                <table style="width:100%;font-size:.95rem">
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Consultation</td><td class="text-end fw-semibold">@Model.ConsultationFee.ToString("C")</td></tr>
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Lab Charges</td><td class="text-end fw-semibold">@Model.LabCharges.ToString("C")</td></tr>
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Medicine</td><td class="text-end fw-semibold">@Model.MedicineCharges.ToString("C")</td></tr>
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Room</td><td class="text-end fw-semibold">@Model.RoomCharges.ToString("C")</td></tr>
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Other</td><td class="text-end fw-semibold">@Model.OtherCharges.ToString("C")</td></tr>
+                    <tr><td style="padding:8px 0;color:var(--brand-success)">Discount</td><td class="text-end fw-semibold" style="color:var(--brand-success)">-@Model.Discount.ToString("C")</td></tr>
+                    <tr style="border-top:2px solid var(--border-color)">
+                        <td style="padding:12px 0;font-weight:700;font-size:1.1rem">Total</td>
+                        <td class="text-end fw-bold" style="font-size:1.1rem">@Model.TotalAmount.ToString("C")</td>
+                    </tr>
+                    <tr><td style="padding:8px 0;color:var(--text-secondary)">Amount Paid</td><td class="text-end fw-semibold">@Model.AmountPaid.ToString("C")</td></tr>
+                    <tr>
+                        <td style="padding:8px 0;font-weight:600">Balance Due</td>
+                        <td class="text-end fw-bold" style="color:@(Model.Balance > 0 ? "var(--brand-danger)" : "var(--brand-success)")">@Model.Balance.ToString("C")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Payment Status</h3></div>
+            <div class="card-body">
+                @{
+                    var bc = Model.Status switch
+                    {
+                        PaymentStatus.Paid => "badge-success",
+                        PaymentStatus.Partial => "badge-warning",
+                        _ => "badge-danger"
+                    };
+                }
+                <span class="badge @bc badge-dot" style="font-size:.9rem;padding:6px 14px">@Model.Status</span>
+                @if (Model.Method.HasValue)
+                {
+                    <div class="mt-2 text-muted" style="font-size:.85rem">Method: @Model.Method</div>
+                }
+                @if (Model.PaidAt.HasValue)
+                {
+                    <div class="text-muted" style="font-size:.85rem">Paid: @Model.PaidAt.Value.ToString("MMM dd, yyyy HH:mm")</div>
+                }
+            </div>
+        </div>
+
+        @if (Model.Balance > 0)
+        {
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Record Payment</h3></div>
+                <div class="card-body">
+                    <form asp-action="RecordPayment" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" name="amount" step="0.01" max="@Model.Balance" value="@Model.Balance" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Method</label>
+                            <select name="method" class="form-select" asp-items="Html.GetEnumSelectList<PaymentMethod>()" required>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-cash"></i> Record Payment</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>

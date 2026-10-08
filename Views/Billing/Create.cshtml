@@ -1,0 +1,72 @@
+@model Billing
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-receipt me-2"></i>New Invoice</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Invoice Number</label>
+                            <input asp-for="InvoiceNumber" class="form-control" readonly />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PatientId" class="form-label">Patient *</label>
+                            <select asp-for="PatientId" asp-items="ViewBag.Patients" class="form-select">
+                                <option value="">Select patient…</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="ConsultationFee" class="form-label">Consultation Fee</label>
+                            <input asp-for="ConsultationFee" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="LabCharges" class="form-label">Lab Charges</label>
+                            <input asp-for="LabCharges" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="MedicineCharges" class="form-label">Medicine</label>
+                            <input asp-for="MedicineCharges" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="RoomCharges" class="form-label">Room Charges</label>
+                            <input asp-for="RoomCharges" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="OtherCharges" class="form-label">Other</label>
+                            <input asp-for="OtherCharges" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Discount" class="form-label">Discount</label>
+                            <input asp-for="Discount" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AmountPaid" class="form-label">Amount Paid Now</label>
+                            <input asp-for="AmountPaid" type="number" step="0.01" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Method" class="form-label">Payment Method</label>
+                            <select asp-for="Method" class="form-select" asp-items="Html.GetEnumSelectList<PaymentMethod>()">
+                                <option value="">Select…</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label asp-for="Notes" class="form-label">Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Create Invoice</button>
+                        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

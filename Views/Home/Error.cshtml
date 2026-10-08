@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="empty-state" style="padding:80px 20px">
+    <i class="bi bi-exclamation-octagon" style="font-size:4rem;color:var(--brand-danger)"></i>
+    <h2 style="font-family:var(--font-display);margin:16px 0 8px">Something went wrong</h2>
+    <p class="text-muted">An unexpected error occurred. Please try again later.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Go to Dashboard</a>
+</div>

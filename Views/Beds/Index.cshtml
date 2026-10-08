@@ -1,0 +1,98 @@
+@model IEnumerable<Bed>
+@{
+    ViewData["Title"] = "Beds & Wards";
+    dynamic stats = ViewBag.Stats;
+}
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-2">
+        <div class="stat-card success" style="padding:14px">
+            <div class="stat-value" style="font-size:1.4rem" data-count="@stats.Available">0</div>
+            <div class="stat-label">Available</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="stat-card danger" style="padding:14px">
+            <div class="stat-value" style="font-size:1.4rem" data-count="@stats.Occupied">0</div>
+            <div class="stat-label">Occupied</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="stat-card warning" style="padding:14px">
+            <div class="stat-value" style="font-size:1.4rem" data-count="@stats.Maintenance">0</div>
+            <div class="stat-label">Maintenance</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-2">
+        <div class="stat-card primary" style="padding:14px">
+            <div class="stat-value" style="font-size:1.4rem" data-count="@stats.Total">0</div>
+            <div class="stat-label">Total Beds</div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <form method="get" class="d-flex gap-2 flex-wrap">
+        <select name="ward" class="form-select" style="width:auto" onchange="this.form.submit()">
+            <option value="">All Wards</option>
+            @foreach (var item in (SelectList)ViewBag.Wards)
+            {
+                <option value="@item.Value" selected="@(ViewBag.SelectedWard == item.Value)">@item.Text</option>
+            }
+        </select>
+        <select name="status" class="form-select" style="width:auto" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetValues<BedStatus>())
+            {
+                <option value="@s" selected="@(ViewBag.SelectedStatus == s.ToString())">@s</option>
+            }
+        </select>
+        <a asp-action="Index" class="btn btn-secondary btn-sm">Clear</a>
+    </form>
+</div>
+
+<div class="bed-grid">
+@foreach (var bed in Model)
+{
+    var statusClass = bed.Status.ToString().ToLower();
+    var icon = bed.Status switch
+    {
+        BedStatus.Available => "bi-check-circle-fill",
+        BedStatus.Occupied => "bi-person-fill",
+        BedStatus.Maintenance => "bi-tools",
+        BedStatus.Cleaning => "bi-droplet-fill",
+        BedStatus.Reserved => "bi-bookmark-fill",
+        _ => "bi-bed"
+    };
+    <div class="bed-card @statusClass">
+        <div class="bed-number">@bed.BedNumber</div>
+        <div class="bed-ward">@bed.WardName · Fl.@bed.Floor</div>
+        <div class="bed-status-icon"><i class="bi @icon"></i></div>
+        <div class="badge badge-@(bed.Status == BedStatus.Available ? "success" : bed.Status == BedStatus.Occupied ? "danger" : "warning")">
+            @bed.Status
+        </div>
+        <div class="mt-2" style="font-size:.75rem;color:var(--text-muted)">@bed.DailyRate.ToString("C")/day</div>
+        <div class="mt-2 d-flex gap-1 justify-content-center flex-wrap">
+            @if (bed.Status == BedStatus.Available)
+            {
+                <a asp-action="Assign" asp-route-id="@bed.Id" class="btn btn-sm btn-primary">Assign</a>
+            }
+            else if (bed.Status == BedStatus.Occupied)
+            {
+                <form asp-action="Discharge" method="post" class="d-inline">
+                    <input type="hidden" name="bedId" value="@bed.Id" />
+                    <button type="submit" class="btn btn-sm btn-danger" data-confirm="Discharge patient from @bed.BedNumber?">Discharge</button>
+                </form>
+            }
+            else if (bed.Status == BedStatus.Cleaning || bed.Status == BedStatus.Maintenance)
+            {
+                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@bed.Id" />
+                    <input type="hidden" name="status" value="Available" />
+                    <button type="submit" class="btn btn-sm btn-success">Mark Available</button>
+                </form>
+            }
+        </div>
+    </div>
+}
+</div>

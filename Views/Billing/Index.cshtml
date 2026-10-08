@@ -1,0 +1,71 @@
+@model IEnumerable<Billing>
+@{
+    ViewData["Title"] = "Billing";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2">
+        <select name="status" class="form-select" style="width:auto" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetValues<PaymentStatus>())
+            {
+                <option value="@s" selected="@(ViewBag.SelectedStatus == s.ToString())">@s</option>
+            }
+        </select>
+        <a asp-action="Index" class="btn btn-secondary btn-sm">Clear</a>
+    </form>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Create Invoice</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Patient</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var b in Model)
+                    {
+                        var bc = b.Status switch
+                        {
+                            PaymentStatus.Paid => "badge-success",
+                            PaymentStatus.Partial => "badge-warning",
+                            PaymentStatus.Pending => "badge-danger",
+                            PaymentStatus.Overdue => "badge-danger",
+                            _ => "badge-secondary"
+                        };
+                        <tr>
+                            <td><code style="color:var(--brand-primary)">@b.InvoiceNumber</code></td>
+                            <td class="fw-semibold">@b.Patient?.FullName</td>
+                            <td>@b.TotalAmount.ToString("C")</td>
+                            <td>@b.AmountPaid.ToString("C")</td>
+                            <td class="fw-semibold @(b.Balance > 0 ? "text-danger" : "")">@b.Balance.ToString("C")</td>
+                            <td><span class="badge @bc badge-dot">@b.Status</span></td>
+                            <td>@b.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@b.Id" class="btn-icon-sm" title="Details"><i class="bi bi-eye"></i></a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state"><i class="bi bi-receipt"></i><p>No invoices found</p></div>
+        }
+    </div>
+</div>

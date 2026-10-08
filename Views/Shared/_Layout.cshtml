@@ -1,0 +1,138 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — HospitalMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+    <script>
+        // Prevent FOUC — apply theme before paint
+        (function () {
+            var t = localStorage.getItem('hms-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+</head>
+<body>
+@if (SignInManager.IsSignedIn(User))
+{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var roles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var roleName = roles.FirstOrDefault() ?? "User";
+    var initials = currentUser?.FullName?.Split(' ').Select(n => n[0]).Take(2).Aggregate("", (a, b) => a + b).ToUpper() ?? "U";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    <div class="app-shell">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+                <span class="brand-text">HospitalMS</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Main</div>
+                <a class="nav-item @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span>
+                </a>
+
+                <div class="nav-section-title">Clinical</div>
+                <a class="nav-item @(currentController == "Patients" ? "active" : "")" asp-controller="Patients" asp-action="Index">
+                    <i class="bi bi-people-fill"></i><span class="nav-label">Patients</span>
+                </a>
+                <a class="nav-item @(currentController == "Appointments" ? "active" : "")" asp-controller="Appointments" asp-action="Index">
+                    <i class="bi bi-calendar2-check-fill"></i><span class="nav-label">Appointments</span>
+                </a>
+                <a class="nav-item @(currentController == "Beds" ? "active" : "")" asp-controller="Beds" asp-action="Index">
+                    <i class="bi bi-hospital-fill"></i><span class="nav-label">Beds & Wards</span>
+                </a>
+
+                <div class="nav-section-title">Finance</div>
+                <a class="nav-item @(currentController == "Billing" ? "active" : "")" asp-controller="Billing" asp-action="Index">
+                    <i class="bi bi-receipt-cutoff"></i><span class="nav-label">Billing</span>
+                </a>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="nav-section-title">Administration</div>
+                    <a class="nav-item @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
+                        <i class="bi bi-shield-lock-fill"></i><span class="nav-label">Staff & Users</span>
+                    </a>
+                }
+            </nav>
+        </aside>
+
+        <!-- ========== MAIN ========== -->
+        <div class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="btn-icon" data-sidebar-toggle title="Toggle sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h1 class="page-title">@ViewData["Title"]</h1>
+                </div>
+                <div class="header-right">
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        <span id="live-clock"></span>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle" title="Toggle dark / light theme">
+                        <div class="thumb"><i class="bi bi-sun-fill"></i></div>
+                    </div>
+
+                    <div class="user-menu">
+                        <div class="user-avatar">@initials</div>
+                        <div class="user-info d-none d-md-block">
+                            <div class="name">@(currentUser?.FullName ?? "User")</div>
+                            <div class="role">@roleName</div>
+                        </div>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="btn-icon" title="Sign out">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="page-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success mb-3" data-auto-dismiss>
+                        <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger mb-3" data-auto-dismiss>
+                        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    @RenderBody()
+}
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

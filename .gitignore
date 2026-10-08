@@ -1,0 +1,25 @@
+## Build and compiled output
+bin/
+obj/
+[Debug]/
+[Release]/
+*.dll
+*.exe
+*.pdb
+
+## Visual Studio user files & settings
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Local configuration & databases
+*.db
+*.mdf
+*.ldf
+appsettings.Development.json
+
+## Logs and publish folders
+publish/
+*.log

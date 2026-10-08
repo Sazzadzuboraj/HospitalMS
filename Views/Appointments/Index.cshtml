@@ -1,0 +1,80 @@
+@model IEnumerable<Appointment>
+@{
+    ViewData["Title"] = "Appointments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2 flex-wrap">
+        <select name="status" class="form-select" style="width:auto" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var s in Enum.GetValues<AppointmentStatus>())
+            {
+                <option value="@s" selected="@(ViewBag.StatusFilter == s.ToString())">@s</option>
+            }
+        </select>
+        <input type="date" name="date" value="@ViewBag.DateFilter" class="form-control" style="width:auto" onchange="this.form.submit()" />
+        <a asp-action="Index" class="btn btn-secondary btn-sm">Clear</a>
+    </form>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Schedule Appointment</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Slot</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var a in Model)
+                    {
+                        var badgeClass = a.Status switch
+                        {
+                            AppointmentStatus.Confirmed => "badge-success",
+                            AppointmentStatus.Scheduled => "badge-info",
+                            AppointmentStatus.InProgress => "badge-warning",
+                            AppointmentStatus.Completed => "badge-secondary",
+                            AppointmentStatus.Cancelled => "badge-danger",
+                            AppointmentStatus.NoShow => "badge-danger",
+                            _ => "badge-secondary"
+                        };
+                        <tr>
+                            <td class="fw-semibold">@a.Patient?.FullName</td>
+                            <td>@a.Doctor?.FullName</td>
+                            <td>@a.AppointmentDate.ToString("MMM dd, yyyy")</td>
+                            <td><span class="badge badge-secondary">@a.TimeSlot</span></td>
+                            <td>@(a.Reason ?? "—")</td>
+                            <td><span class="badge @badgeClass badge-dot">@a.Status</span></td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@a.Id" class="btn-icon-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                                @if (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed)
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@a.Id" />
+                                        <input type="hidden" name="status" value="Completed" />
+                                        <button type="submit" class="btn-icon-sm" title="Mark Completed" data-confirm="Mark this appointment as completed?"><i class="bi bi-check2-circle"></i></button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state"><i class="bi bi-calendar-x"></i><p>No appointments found</p></div>
+        }
+    </div>
+</div>

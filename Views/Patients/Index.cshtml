@@ -1,0 +1,89 @@
+@model IEnumerable<Patient>
+@{
+    ViewData["Title"] = "Patients";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string? search = ViewBag.Search;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <span class="text-muted">@ViewBag.TotalCount patients registered</span>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="search" value="@search" class="form-control" placeholder="Search name, code, phone…" style="min-width:220px" />
+            <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i></button>
+        </form>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Register Patient</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Full Name</th>
+                            <th>Gender</th>
+                            <th>Age</th>
+                            <th>Blood</th>
+                            <th>Phone</th>
+                            <th>Registered</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var p in Model)
+                    {
+                        var age = DateTime.Today.Year - p.DateOfBirth.Year;
+                        if (p.DateOfBirth.Date > DateTime.Today.AddYears(-age)) age--;
+                        <tr>
+                            <td><code style="color:var(--brand-primary)">@p.PatientCode</code></td>
+                            <td class="fw-semibold">@p.FullName</td>
+                            <td>@p.Gender</td>
+                            <td>@age yrs</td>
+                            <td><span class="badge badge-info">@(p.BloodGroup ?? "—")</span></td>
+                            <td>@(p.Phone ?? "—")</td>
+                            <td>@p.RegisteredAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                @if (p.IsActive)
+                                { <span class="badge badge-success badge-dot">Active</span> }
+                                else
+                                { <span class="badge badge-secondary">Inactive</span> }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@p.Id" class="btn-icon-sm" title="Details"><i class="bi bi-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@p.Id" class="btn-icon-sm" title="Edit"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state"><i class="bi bi-people"></i><p>No patients found</p></div>
+        }
+    </div>
+</div>
+
+@if (totalPages > 1)
+{
+    <div class="d-flex justify-content-center mt-3">
+        <ul class="pagination">
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@search">@i</a>
+                </li>
+            }
+        </ul>
+    </div>
+}

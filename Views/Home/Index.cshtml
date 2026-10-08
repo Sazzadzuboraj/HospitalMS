@@ -1,0 +1,181 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Stat Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-value" data-count="@Model.TotalPatients">0</div>
+            <div class="stat-label">Active Patients</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card secondary">
+            <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
+            <div class="stat-value" data-count="@Model.TotalDoctors">0</div>
+            <div class="stat-label">Doctors on Staff</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card info">
+            <div class="stat-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+            <div class="stat-value" data-count="@Model.TodayAppointments">0</div>
+            <div class="stat-label">Today's Appointments</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card success">
+            <div class="stat-icon"><i class="bi bi-hospital-fill"></i></div>
+            <div class="stat-value" data-count="@Model.AvailableBeds">0</div>
+            <div class="stat-label">Available Beds</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card danger">
+            <div class="stat-icon"><i class="bi bi-bed-fill"></i></div>
+            <div class="stat-value" data-count="@Model.OccupiedBeds">0</div>
+            <div class="stat-label">Occupied Beds</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card warning">
+            <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+            <div class="stat-value" data-count="@Model.PendingBills">0</div>
+            <div class="stat-label">Pending Bills</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card success">
+            <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-value" data-count="@Model.TodayRevenue" data-currency="true">$0</div>
+            <div class="stat-label">Today's Revenue</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-value" data-count="@Model.MonthlyRevenue" data-currency="true">$0</div>
+            <div class="stat-label">Monthly Revenue</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Upcoming Appointments -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-calendar2-week me-2"></i>Upcoming Appointments</h3>
+                <a asp-controller="Appointments" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.UpcomingAppointments.Any())
+                {
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var a in Model.UpcomingAppointments)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@a.Patient?.FullName</td>
+                                    <td>@a.Doctor?.FullName</td>
+                                    <td>
+                                        <div>@a.AppointmentDate.ToString("MMM dd, yyyy")</div>
+                                        <small class="text-muted">@a.TimeSlot</small>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var badgeClass = a.Status switch
+                                            {
+                                                AppointmentStatus.Confirmed => "badge-success",
+                                                AppointmentStatus.Scheduled => "badge-info",
+                                                AppointmentStatus.InProgress => "badge-warning",
+                                                AppointmentStatus.Completed => "badge-secondary",
+                                                AppointmentStatus.Cancelled => "badge-danger",
+                                                _ => "badge-secondary"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass badge-dot">@a.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state"><i class="bi bi-calendar-x"></i><p>No upcoming appointments</p></div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bills -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-receipt me-2"></i>Recent Bills</h3>
+                <a asp-controller="Billing" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentBills.Any())
+                {
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var b in Model.RecentBills)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold" style="font-size:.85rem">@b.InvoiceNumber</div>
+                                        <small class="text-muted">@b.Patient?.FullName</small>
+                                    </td>
+                                    <td class="fw-semibold">@b.TotalAmount.ToString("C")</td>
+                                    <td>
+                                        @{
+                                            var bc = b.Status switch
+                                            {
+                                                PaymentStatus.Paid => "badge-success",
+                                                PaymentStatus.Partial => "badge-warning",
+                                                PaymentStatus.Pending => "badge-danger",
+                                                _ => "badge-secondary"
+                                            };
+                                        }
+                                        <span class="badge @bc">@b.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state"><i class="bi bi-receipt"></i><p>No recent bills</p></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
